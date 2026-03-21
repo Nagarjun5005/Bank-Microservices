@@ -5,36 +5,24 @@ import com.nagarjun.Account.dto.CustomerDto;
 import com.nagarjun.Account.entity.Account;
 import com.nagarjun.Account.entity.Customer;
 import com.nagarjun.Account.exception.CustomerAlreadyExistsException;
+import com.nagarjun.Account.exception.ResourceNotFoundException;
 import com.nagarjun.Account.mapper.AccountMapper;
 import com.nagarjun.Account.mapper.CustomerMapper;
 import com.nagarjun.Account.repository.AccountsRepository;
 import com.nagarjun.Account.repository.CustomerRepository;
 import com.nagarjun.Account.service.AccountService;
-import com.nagarjun.Account.service.CustomerService;
 import lombok.AllArgsConstructor;
-import org.apache.catalina.mapper.Mapper;
 import org.springframework.stereotype.Service;
-
-import javax.swing.text.html.Option;
 import java.time.LocalDateTime;
 import java.util.Optional;
-import java.util.Random;
 
 
 @Service
 @AllArgsConstructor
 public class AccountServiceImpl implements AccountService {
 
-
     private AccountsRepository accountsRepository;
-
     private CustomerRepository customerRepository;
-
-
-
-
-
-
 
     @Override
     public void createAccount(CustomerDto customerDto) {
@@ -53,8 +41,21 @@ public class AccountServiceImpl implements AccountService {
         customer.setCreatedBy("Anonymous");
         Customer savedCustomer = customerRepository.save(customer);
         accountsRepository.save(createNewAccount(savedCustomer));
+    }
 
+    @Override
+    public CustomerDto fetchAccount(String mobileNumber) {
+        //find the customer using findByMobileNumber
+        Customer customer = customerRepository.findByMobileNumber(mobileNumber)
+                .orElseThrow(() -> new ResourceNotFoundException("Customer", "mobileNumber", mobileNumber));
 
+        // find the account using findByCustomerId
+        Account account = accountsRepository.findByCustomerId(customer.getCustomerId())
+                .orElseThrow(() -> new ResourceNotFoundException("Account", "customerId", customer.getCustomerId().toString()));
+
+        CustomerDto customerDto = CustomerMapper.mapToCustomerDto(customer);
+        customerDto.setAccountsDto(AccountMapper.mapToAccountsDto(account));
+        return customerDto;
     }
 
     private Account createNewAccount(Customer customer) {
