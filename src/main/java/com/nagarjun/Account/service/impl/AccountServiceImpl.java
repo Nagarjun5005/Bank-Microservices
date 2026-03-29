@@ -1,6 +1,7 @@
 package com.nagarjun.Account.service.impl;
 
 import com.nagarjun.Account.constants.AccountsConstants;
+import com.nagarjun.Account.dto.AccountsDto;
 import com.nagarjun.Account.dto.CustomerDto;
 import com.nagarjun.Account.entity.Account;
 import com.nagarjun.Account.entity.Customer;
@@ -30,7 +31,7 @@ public class AccountServiceImpl implements AccountService {
 
         //when u create a account u need to create customer and account
         //in repo u have customer
-        Customer customer= CustomerMapper.mapToCustomer(customerDto);
+        Customer customer= CustomerMapper.mapToCustomer(customerDto,new Customer());
 
         //check if this customer already exists with the same mobile number
        Optional<Customer> mobileNumber = customerRepository.findByMobileNumber(customerDto.getMobileNumber());
@@ -53,9 +54,47 @@ public class AccountServiceImpl implements AccountService {
         Account account = accountsRepository.findByCustomerId(customer.getCustomerId())
                 .orElseThrow(() -> new ResourceNotFoundException("Account", "customerId", customer.getCustomerId().toString()));
 
-        CustomerDto customerDto = CustomerMapper.mapToCustomerDto(customer);
-        customerDto.setAccountsDto(AccountMapper.mapToAccountsDto(account));
+        CustomerDto customerDto = CustomerMapper.mapToCustomerDto(customer, new CustomerDto());
+        customerDto.setAccountsDto(AccountMapper.mapToAccountsDto(account, new AccountsDto()));
         return customerDto;
+    }
+
+    @Override
+    public boolean updateAccount(CustomerDto customerDto) {
+
+        boolean updated =false;
+
+        AccountsDto accountsDto = customerDto.getAccountsDto();
+        if(accountsDto!=null){
+            Account account1 = accountsRepository.findById(accountsDto.getAccountNumber())
+                    .orElseThrow(() -> new ResourceNotFoundException("Account", "AccountNumber", accountsDto.getAccountNumber().toString()));
+
+            Account account = AccountMapper.mapToAccounts(accountsDto,account1);
+            Account savedAccount = accountsRepository.save(account);
+
+            Long customerId=savedAccount.getCustomerId();
+            Customer customer1 = customerRepository.findById(customerId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Customer", "CustomerId", customerId.toString()));
+
+            Customer customer = CustomerMapper.mapToCustomer(customerDto,customer1);
+            customerRepository.save(customer);
+            updated=true;
+
+        }
+
+        //have to update the customer ----->findByid
+        return updated;
+    }
+
+    @Override
+    public boolean deleteAccountByMobileNumber(String mobileNumber) {
+
+
+        Customer customer = customerRepository.findByMobileNumber(mobileNumber)
+                .orElseThrow(() -> new ResourceNotFoundException("Customer", "mobileNumber", mobileNumber));
+        accountsRepository.deleteByCustomerId(customer.getCustomerId());
+        customerRepository.deleteById(customer.getCustomerId());
+        return true;
     }
 
     private Account createNewAccount(Customer customer) {

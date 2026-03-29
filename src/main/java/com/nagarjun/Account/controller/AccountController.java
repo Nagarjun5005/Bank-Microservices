@@ -5,7 +5,6 @@ import com.nagarjun.Account.constants.AccountsConstants;
 import com.nagarjun.Account.dto.CustomerDto;
 import com.nagarjun.Account.dto.ResponseDto;
 import com.nagarjun.Account.service.AccountService;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -32,6 +31,34 @@ public class AccountController {
        CustomerDto customerDto= accountService.fetchAccount(mobileNumber);
         return ResponseEntity.status(HttpStatus.FOUND).body(customerDto);
 
+    }
+
+
+    @PutMapping("/update")
+    public ResponseEntity<ResponseDto>updateAccountDetails(@RequestBody CustomerDto customerDto){
+
+        boolean updateAccount = accountService.updateAccount(customerDto);
+        if(updateAccount){
+            return ResponseEntity.status(HttpStatus.OK).body(new ResponseDto(AccountsConstants.STATUS_200,AccountsConstants.MESSAGE_200));
+        }else{
+            return  ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ResponseDto(AccountsConstants.STATUS_417,AccountsConstants.MESSAGE_417_UPDATE));
+        }
+    }
+
+
+    @DeleteMapping("/delete")
+    public ResponseEntity<ResponseDto>deleteAccount(@RequestParam String mobileNumber){
+
+        boolean deleted = accountService.deleteAccountByMobileNumber(mobileNumber);
+        if (deleted){
+            return ResponseEntity
+                    .status(HttpStatus.OK)
+                    .body(new ResponseDto(AccountsConstants.STATUS_200,AccountsConstants.MESSAGE_200));
+        }else {
+            return  ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ResponseDto(AccountsConstants.STATUS_417,AccountsConstants.MESSAGE_417_DELETE));
+        }
     }
 
 

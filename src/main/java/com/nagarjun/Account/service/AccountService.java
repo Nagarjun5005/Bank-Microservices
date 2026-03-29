@@ -4,7 +4,11 @@ import com.nagarjun.Account.dto.CustomerDto;
 
 public interface AccountService {
 
-    public void createAccount(CustomerDto customerDto);
+     void createAccount(CustomerDto customerDto);
 
     CustomerDto fetchAccount(String mobileNumber);
+
+    boolean updateAccount(CustomerDto customerDto);
+
+    boolean deleteAccountByMobileNumber(String mobileNumber );
 }
