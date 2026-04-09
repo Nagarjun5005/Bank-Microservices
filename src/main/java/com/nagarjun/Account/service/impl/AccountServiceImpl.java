@@ -38,8 +38,6 @@ public class AccountServiceImpl implements AccountService {
         if(mobileNumber.isPresent()){
             throw new CustomerAlreadyExistsException("customer already exists with the registered "+customer.getMobileNumber()+" mobile number");
         }
-        customer.setCreatedAt(LocalDateTime.now());
-        customer.setCreatedBy("Anonymous");
         Customer savedCustomer = customerRepository.save(customer);
         accountsRepository.save(createNewAccount(savedCustomer));
     }
@@ -103,8 +101,6 @@ public class AccountServiceImpl implements AccountService {
         account.setAccountNumber(generateAccountNumber());
         account.setAccountType(AccountsConstants.SAVINGS);
         account.setBranchAddress(AccountsConstants.ADDRESS);
-        account.setCreatedBy("Anonymous");
-        account.setCreatedAt(LocalDateTime.now());
         return account;
     }
 
